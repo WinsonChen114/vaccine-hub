@@ -7,9 +7,21 @@ class User {
     static async login(credentials) {
         //Submit email and password
         //If any fields are missing, throw an error
-
+        const requiredFields = ["password", "email"]
+        requiredFields.forEach((field) => {
+            if (!credentials.hasOwnProperty(field)) {
+                throw new BadRequestError("Missing " + field + " in request body.")
+            }
+        })
         //Look up user in db
         //If user found, compare submitted password with password in db
+        const user = await User.fetchUserbyEmail(credentials.email)
+        if (user) {
+            const isValid = await bcrypt.compare(credentials.password, user.password)
+            if (isValid) {
+                return user
+            }
+        }
         //If there is a match, submit user
         //If error, throw an error
         throw new UnauthorizedError("Invalid credentials, please try again")
@@ -38,7 +50,7 @@ class User {
         //Take user's email and loercase it
         const lowercaseEmail = credentials.email.toLowerCase()
         //Create a new user in the db with all their info and return user
-        const result= await db.query(`
+        const result = await db.query(`
         INSERT INTO users(
             password,
             first_name,
