@@ -1,4 +1,5 @@
 const { UnauthorizedError } = require("../utils/errors")
+const db = require("../db")
 
 class User{
     static login(credentials)
@@ -27,4 +28,4 @@ class User{
     }
 }
 
-modules.exports = User
+module.exports = User
