@@ -17,7 +17,7 @@ router.post("/register", async (request, response, next) => {
     try {
         //Taking user's email, password, rsvp status, and the number of guests
         //and create a new user in database
-        const user = await User.login(request.body)
+        const user = await User.register(request.body)
         return response.status(201).json({ user })
     }
     catch (err) {

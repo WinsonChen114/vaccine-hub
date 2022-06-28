@@ -1,5 +1,7 @@
 const { BadRequestError, UnauthorizedError } = require("../utils/errors")
 const db = require("../db")
+const { BCRYPT_WORK_FACTOR } = require("../config")
+const bcrypt = require("bcrypt")
 
 class User {
     static async login(credentials) {
@@ -16,7 +18,7 @@ class User {
     static async register(credentials) {
         //User should submit all parameters
         //If any fields are missing, throw an error
-        const requiredFields = ["password", "firstName", "lastName", "email", "location", "date"]
+        const requiredFields = ["password", "firstName", "lastName", "email", "location"]
         requiredFields.forEach((field) => {
             if (!credentials.hasOwnProperty(field)) {
                 throw new BadRequestError("Missing " + field + " in request body.")
@@ -32,6 +34,7 @@ class User {
 
 
         //Take user's password and hash it
+        const hashedPassword = await bcrypt.hash(credentials.password, BCRYPT_WORK_FACTOR)
         //Take user's email and loercase it
         const lowercaseEmail = credentials.email.toLowerCase()
         //Create a new user in the db with all their info and return user
@@ -41,11 +44,10 @@ class User {
             first_name,
             last_name,
             email,
-            location,
-            date)
-        VALUES($1, $2, $3, $4, $5, $6)
+            location)
+        VALUES($1, $2, $3, $4, $5)
         RETURNING id, first_name, last_name, email, location, date;
-        `, [credentials.password, credentials.firstName, credentials.lastName, lowercaseEmail, credentials.location, credentials.date])
+        `, [hashedPassword, credentials.firstName, credentials.lastName, lowercaseEmail, credentials.location])
 
         const user = result.rows[0]
 
